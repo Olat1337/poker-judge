@@ -12,6 +12,7 @@ TOKEN = os.getenv("TELEGRAM_TOKEN")
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
+users_history={}
 
 llm = setup_llm(LLM_MODEL)
 embedding_model = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL_NAME)
@@ -23,11 +24,22 @@ async def cmd_start(message: types.Message):
 
 @dp.message()
 async def judge_answer(message: types.Message):
-    question = message.text
+    user_id = message.from_user.id
+
+    if user_id not in users_history:
+        users_history[user_id] = []
+
+    current_history = "\n".join(users_history[user_id][-4:])
+
     await message.answer("The judge is flipping through the rulebook...")
-    answer = ask_judge(question, db, llm)
+
+    question = message.text
+    answer = ask_judge(question, db, llm, current_history)
+    users_history[user_id].append(f"Player: {question}")
+    users_history[user_id].append(f"Judge: {answer}")
 
     await message.answer(answer)
+
 
 async def main():
     print("Bot started...")

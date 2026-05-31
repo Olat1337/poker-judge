@@ -30,7 +30,8 @@ def ask_judge(question, db, llm, chat_history =""):
         3. If the question is about previous messages or the player, use the [HISTORY].
         4. If the answer is not in the history or rules, simply say "I don't know."
         5. CRITICAL: NEVER mention the words "[RULES]", "[HISTORY]", or explain how you found the information. Do not explain your thought process. Just provide the final answer.
-
+        6. If the player is just greeting you or talking about themselves (not asking a poker question), DO NOT quote the rules or invent game scenarios. Just reply politely and conversationally.        
+        
         Player: {question}
         Judge:
         """
