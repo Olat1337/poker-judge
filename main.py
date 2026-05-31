@@ -3,7 +3,6 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_ollama import OllamaLLM
-from langchain_core.prompts import PromptTemplate
 import os
 os.environ["HF_HUB_DISABLE_SYMLINKS_WARNING"] = "1"
 
@@ -12,21 +11,31 @@ EMBEDDING_MODEL_NAME = "all-MiniLM-L6-v2"
 LLM_MODEL = "llama3"
 CHROMA_PATH = "chroma_db"
 
-def ask_judge(query, db, llm):
-    docs = db.similarity_search(query, k=5)
+def ask_judge(question, db, llm, chat_history =""):
+    docs = db.similarity_search(question, k=5)
     context = "\n\n".join([doc.page_content for doc in docs])
-    template_text = """You are a strict poker tournament judge. Answer the player's question using ONLY the provided rules. If the answer is not in the rules, say "I don't know".
 
-    Rules:
-    {context}
+    prompt = f"""
+        You are a professional and helpful poker tournament judge.
 
-    Question: {question}
+        [HISTORY]
+        {chat_history}
 
-    Answer:"""
+        [RULES]
+        {context}
 
-    template = PromptTemplate.from_template(template_text)
-    final_prompt = template.format(context=context, question = query)
-    response = llm.invoke(final_prompt)
+        INSTRUCTIONS:
+        1. Answer the player's question naturally and directly.
+        2. If the question is about poker, base your answer strictly on the [RULES].
+        3. If the question is about previous messages or the player, use the [HISTORY].
+        4. If the answer is not in the history or rules, simply say "I don't know."
+        5. CRITICAL: NEVER mention the words "[RULES]", "[HISTORY]", or explain how you found the information. Do not explain your thought process. Just provide the final answer.
+
+        Player: {question}
+        Judge:
+        """
+
+    response = llm.invoke(prompt)
 
     return response
 
@@ -65,15 +74,25 @@ def main():
     print("\n--- POKER JUDGE IS READY ---")
     print("Type 'exit' to close the program.\n")
 
+    messages = []
+
     while True:
-        query = input()
-        if query == "exit":
+        question = input("You:")
+
+        if question.lower() == "exit":
             break
+
         print("---THINKING---")
-        response = ask_judge(query, db, llm)
+
+        last_chat_history = "\n".join(messages[-4:])
+
+        response = ask_judge(question, db, llm, last_chat_history)
 
         print("JUDGE'S VERDICT: ")
-        print(response)
+        print(response+"\n")
+
+        messages.append(f"Player: {question}")
+        messages.append(f"Judge: {response}")
 
 if __name__ == '__main__':
     main()
