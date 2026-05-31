@@ -1,13 +1,16 @@
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_community.llms import Ollama
+from langchain_ollama import OllamaLLM
 from langchain_core.prompts import PromptTemplate
+import os
+os.environ["HF_HUB_DISABLE_SYMLINKS_WARNING"] = "1"
 
 PDF_FILE_PATH = "data/rules.pdf"
 EMBEDDING_MODEL_NAME = "all-MiniLM-L6-v2"
 LLM_MODEL = "llama3"
+CHROMA_PATH = "chroma_db"
 
 def ask_judge(query, db, llm):
     docs = db.similarity_search(query, k=3)
@@ -28,7 +31,7 @@ def ask_judge(query, db, llm):
     return response
 
 def setup_llm(llm_model):
-    llm = Ollama(model=llm_model)
+    llm = OllamaLLM(model=llm_model)
 
     return llm
 
@@ -48,23 +51,29 @@ def load_split_pdf(file_path):
 
     return chunks
 
-def create_vector_db(chunks, embedding_model_name):
-    print("CREATING VECTOR DB")
-    embedding_model = HuggingFaceEmbeddings(model_name=embedding_model_name)
-    db = Chroma.from_documents(chunks, embedding_model)
-
-    return db
-
 def main():
-    chunks = load_split_pdf(PDF_FILE_PATH)
-    db = create_vector_db(chunks, EMBEDDING_MODEL_NAME)
     llm = setup_llm(LLM_MODEL)
+    embedding_model = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL_NAME)
+    if os.path.isdir(CHROMA_PATH):
+        print("LOADING DB FROM DISK...")
+        db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embedding_model)
+    else:
+        print("CREATING NEW DB...")
+        chunks = load_split_pdf(PDF_FILE_PATH)
+        db = Chroma.from_documents(chunks, embedding_model, persist_directory=CHROMA_PATH)
 
-    query = "What happens if I bet a single oversized chip?"
-    response = ask_judge(query, db, llm)
+    print("\n--- POKER JUDGE IS READY ---")
+    print("Type 'exit' to close the program.\n")
 
-    print("JUDGE'S VERDICT: ")
-    print(response)
+    while True:
+        query = input()
+        if query == "exit":
+            break
+        print("---THINKING---")
+        response = ask_judge(query, db, llm)
+
+        print("JUDGE'S VERDICT: ")
+        print(response)
 
 if __name__ == '__main__':
     main()
