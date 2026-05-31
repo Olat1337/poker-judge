@@ -1,0 +1,23 @@
+# IDE (PyCharm/IntelliJ settings)
+.idea/
+
+# Python (Cache and Virtual Environment)
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+
+# Project specific files (Vector Database)
+chroma_db/
+
+# Secret files (Environment variables and API tokens)
+.env
+
+# Streamlit cache
+.streamlit/
+
+# OS generated files
+Thumbs.db
+.DS_Store

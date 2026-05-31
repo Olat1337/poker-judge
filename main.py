@@ -13,7 +13,7 @@ LLM_MODEL = "llama3"
 CHROMA_PATH = "chroma_db"
 
 def ask_judge(query, db, llm):
-    docs = db.similarity_search(query, k=3)
+    docs = db.similarity_search(query, k=5)
     context = "\n\n".join([doc.page_content for doc in docs])
     template_text = """You are a strict poker tournament judge. Answer the player's question using ONLY the provided rules. If the answer is not in the rules, say "I don't know".
 
