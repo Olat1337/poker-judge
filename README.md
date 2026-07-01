@@ -11,7 +11,11 @@ An end-to-end local AI application that serves as a strict, hallucination-free p
 
 ## 🔗 Interfaces
 * **Web UI:** Modern chat interface powered by Streamlit.
+<img width="1920" height="1080" alt="Poker Judge WEB UI GIF" src="https://github.com/user-attachments/assets/227d0b6d-8df8-4af6-9fda-4267f2935706" />
+
 * **Telegram Bot:** Fully asynchronous bot with multi-user memory isolation.
+<img width="1920" height="1080" alt="Poker Judge TELEGRAM GIF" src="https://github.com/user-attachments/assets/61ae36d3-5bc4-4978-b002-0569e72b46cd" />
+
 * **CLI:** Continuous interactive chat directly in the terminal.
 ## 🎯 Project Overview
 Resolving disputes during a poker tournament can be stressful, and ensuring consistent application of the rules is a constant challenge for human floor staff. **Poker Tournament Judge AI** solves this by ingesting the official Poker Tournament Directors Association (TDA) rulebook and using a Retrieval-Augmented Generation (RAG) architecture to answer complex situational questions.
